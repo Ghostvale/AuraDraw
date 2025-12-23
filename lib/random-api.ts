@@ -4,6 +4,11 @@
 
 const RANDOM_ORG_BASE_URL = 'https://www.random.org/integers/';
 
+/**
+ * Maximum value supported by Random.org API
+ */
+export const MAX_RANDOM_VALUE = 1_000_000_000;
+
 export interface RandomApiError {
     error: true;
     message: string;

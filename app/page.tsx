@@ -28,7 +28,7 @@ export default function Home() {
                         color: 'var(--text-secondary)',
                         fontWeight: '500',
                     }}>
-                        大气随机彩票生成器
+                        大气随机工具平台
                     </p>
                     <p style={{
                         fontSize: 'clamp(0.875rem, 3vw, 1rem)',
@@ -46,7 +46,15 @@ export default function Home() {
                     width: '100%',
                     maxWidth: '400px',
                 }}>
-                    <Link href="/daletu" className="btn btn-primary" style={{
+                    <Link href="/random" className="btn btn-primary" style={{
+                        fontSize: 'clamp(1rem, 4vw, 1.125rem)',
+                        padding: 'clamp(1rem, 4vw, 1.25rem) clamp(1.5rem, 6vw, 2rem)',
+                    }}>
+                        <span style={{ fontSize: '1.5rem' }}>🎲</span>
+                        大气随机数
+                    </Link>
+
+                    <Link href="/daletu" className="btn btn-secondary" style={{
                         fontSize: 'clamp(1rem, 4vw, 1.125rem)',
                         padding: 'clamp(1rem, 4vw, 1.25rem) clamp(1.5rem, 6vw, 2rem)',
                     }}>
@@ -54,7 +62,7 @@ export default function Home() {
                         生成大乐透
                     </Link>
 
-                    <Link href="/shuangseqiu" className="btn btn-primary" style={{
+                    <Link href="/shuangseqiu" className="btn btn-secondary" style={{
                         fontSize: 'clamp(1rem, 4vw, 1.125rem)',
                         padding: 'clamp(1rem, 4vw, 1.25rem) clamp(1.5rem, 6vw, 2rem)',
                     }}>
@@ -78,10 +86,11 @@ export default function Home() {
                         textAlign: 'center',
                     }}>
                         💡 本应用使用 <strong>Random.org</strong> 提供的大气随机数API，
-                        基于真实的大气噪声（如闪电）生成真随机数，确保每组号码的绝对随机性。
+                        基于真实的大气噪声生成真随机数，可用于随机数生成、彩票号码等多种场景。
                     </p>
                 </div>
             </main>
         </div>
     );
 }
+
