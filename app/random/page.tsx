@@ -72,26 +72,14 @@ export default function RandomPage() {
         <div className="container">
             <div style={{ paddingTop: '1rem' }}>
                 {/* Header */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '2rem',
-                }}>
+                <div className="page-header">
                     <Link href="/" className="btn btn-secondary" style={{ padding: '0.75rem 1.25rem' }}>
                         ← 返回
                     </Link>
-                    <h1 style={{
-                        fontSize: 'clamp(1.5rem, 6vw, 2rem)',
-                        fontWeight: '700',
-                        background: 'var(--accent-gradient)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                    }}>
-                        随机数
+                    <h1 className="page-title">
+                        🎲 随机数
                     </h1>
-                    <div style={{ width: '80px' }}></div> {/* Spacer for centering */}
+                    <div style={{ width: '80px' }}></div>
                 </div>
 
                 {/* Range Input */}

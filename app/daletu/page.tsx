@@ -1,142 +1,90 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
-import { generateDaletu } from '@/lib/lottery';
-import type { LotteryNumbers } from '@/lib/lottery';
+
+const features = [
+    {
+        id: 'generate',
+        href: '/daletu/generate',
+        icon: '🎲',
+        title: '随机生成',
+        description: '基于大气噪声生成真随机号码',
+        gradient: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)',
+        iconBg: 'rgba(99, 102, 241, 0.12)',
+    },
+    {
+        id: 'history',
+        href: '/daletu/history',
+        icon: '📊',
+        title: '开奖查询',
+        description: '查询往期大乐透开奖号码',
+        gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+        iconBg: 'rgba(245, 158, 11, 0.12)',
+    },
+];
 
 export default function DaletuPage() {
-    const [generatedNumbers, setGeneratedNumbers] = useState<LotteryNumbers[]>([]);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const handleGenerate = async () => {
-        setIsGenerating(true);
-        setError(null);
-
-        const result = await generateDaletu();
-
-        if (result.success && result.data) {
-            setGeneratedNumbers((prev) => [result.data!, ...prev]);
-        } else {
-            setError(result.error || '生成失败，请重试');
-        }
-
-        setIsGenerating(false);
-    };
-
     return (
         <div className="container">
             <div style={{ paddingTop: '1rem' }}>
                 {/* Header */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '2rem',
-                }}>
+                <div className="page-header">
                     <Link href="/" className="btn btn-secondary" style={{ padding: '0.75rem 1.25rem' }}>
                         ← 返回
                     </Link>
-                    <h1 style={{
-                        fontSize: 'clamp(1.5rem, 6vw, 2rem)',
-                        fontWeight: '700',
-                        background: 'var(--accent-gradient)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                    }}>
-                        大乐透
+                    <h1 className="page-title">
+                        🎱 大乐透
                     </h1>
-                    <div style={{ width: '80px' }}></div> {/* Spacer for centering */}
+                    <div style={{ width: '80px' }}></div>
                 </div>
 
-                {/* Generate Button */}
-                <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                    <button
-                        onClick={handleGenerate}
-                        disabled={isGenerating}
-                        className="btn btn-primary"
-                        style={{
-                            fontSize: 'clamp(1rem, 4vw, 1.125rem)',
-                            padding: 'clamp(1rem, 4vw, 1.25rem) clamp(2rem, 8vw, 3rem)',
-                            opacity: isGenerating ? 0.6 : 1,
-                            cursor: isGenerating ? 'not-allowed' : 'pointer',
-                        }}
-                    >
-                        {isGenerating ? '生成中...' : '🎲 生成号码'}
-                    </button>
-                </div>
-
-                {/* Error Message */}
-                {error && (
-                    <div className="error-message">
-                        <strong>⚠️ 错误:</strong> {error}
-                    </div>
-                )}
-
-                {/* Generated Numbers */}
-                <div>
-                    {generatedNumbers.length === 0 && !error && (
-                        <div style={{
-                            textAlign: 'center',
-                            padding: '3rem 1rem',
-                            color: 'var(--text-secondary)',
-                        }}>
-                            <p style={{ fontSize: '1.125rem' }}>点击上方按钮生成号码</p>
-                            <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                                前区: 5个号码 (1-35) | 后区: 2个号码 (1-12)
-                            </p>
-                        </div>
-                    )}
-
-                    {generatedNumbers.map((lottery) => (
-                        <div key={lottery.id} className="lottery-card">
-                            <div className="lottery-numbers">
-                                {/* Front numbers */}
-                                {lottery.numbers.map((num, index) => (
-                                    <div key={`front-${index}`} className="number-ball front">
-                                        {num.toString().padStart(2, '0')}
-                                    </div>
-                                ))}
-
-                                {/* Separator */}
-                                <div style={{
-                                    width: '2px',
-                                    height: '48px',
-                                    background: 'var(--border-color)',
-                                    margin: '0 0.25rem',
-                                }}></div>
-
-                                {/* Back numbers */}
-                                {lottery.specialNumbers?.map((num, index) => (
-                                    <div key={`back-${index}`} className="number-ball back">
-                                        {num.toString().padStart(2, '0')}
-                                    </div>
-                                ))}
+                {/* 功能卡片 */}
+                <div className="feature-grid">
+                    {features.map((feature, index) => (
+                        <Link
+                            key={feature.id}
+                            href={feature.href}
+                            className="feature-card"
+                            style={{
+                                '--card-gradient': feature.gradient,
+                                '--card-icon-bg': feature.iconBg,
+                                animationDelay: `${index * 0.1}s`,
+                            } as React.CSSProperties}
+                        >
+                            <div className="feature-card-inner">
+                                <div className="feature-icon">
+                                    <span>{feature.icon}</span>
+                                </div>
+                                <div className="feature-content">
+                                    <h3 className="feature-title">{feature.title}</h3>
+                                    <p className="feature-description">{feature.description}</p>
+                                </div>
+                                <div className="feature-arrow">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M5 12h14M12 5l7 7-7 7" />
+                                    </svg>
+                                </div>
                             </div>
-
-                            <div className="lottery-timestamp">
-                                生成时间: {lottery.timestamp}
-                            </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
 
-                {/* Info */}
-                {generatedNumbers.length > 0 && (
-                    <div style={{
-                        marginTop: '2rem',
-                        padding: '1rem',
-                        background: 'var(--bg-secondary)',
-                        borderRadius: '8px',
-                        textAlign: 'center',
-                        fontSize: '0.875rem',
-                        color: 'var(--text-secondary)',
-                    }}>
-                        已生成 {generatedNumbers.length} 组号码 · 刷新或返回将清空记录
+                {/* 玩法说明 */}
+                <div className="info-card">
+                    <h4>🎯 大乐透玩法说明</h4>
+                    <div className="info-content">
+                        <div className="info-item">
+                            <span className="info-label">前区</span>
+                            <span className="info-value">从 01-35 选择 5 个号码</span>
+                        </div>
+                        <div className="info-item">
+                            <span className="info-label">后区</span>
+                            <span className="info-value">从 01-12 选择 2 个号码</span>
+                        </div>
+                        <div className="info-item">
+                            <span className="info-label">开奖时间</span>
+                            <span className="info-value">每周一、三、六 21:30</span>
+                        </div>
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

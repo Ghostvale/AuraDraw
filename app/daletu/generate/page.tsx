@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { generateShuangseqiu } from '@/lib/lottery';
+import { generateDaletu } from '@/lib/lottery';
 import type { LotteryNumbers } from '@/lib/lottery';
 
-export default function ShuangseqiuPage() {
+export default function DaletuGeneratePage() {
     const [generatedNumbers, setGeneratedNumbers] = useState<LotteryNumbers[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,7 @@ export default function ShuangseqiuPage() {
         setIsGenerating(true);
         setError(null);
 
-        const result = await generateShuangseqiu();
+        const result = await generateDaletu();
 
         if (result.success && result.data) {
             setGeneratedNumbers((prev) => [result.data!, ...prev]);
@@ -30,11 +30,11 @@ export default function ShuangseqiuPage() {
             <div style={{ paddingTop: '1rem' }}>
                 {/* Header */}
                 <div className="page-header">
-                    <Link href="/" className="btn btn-secondary" style={{ padding: '0.75rem 1.25rem' }}>
+                    <Link href="/daletu" className="btn btn-secondary" style={{ padding: '0.75rem 1.25rem' }}>
                         ← 返回
                     </Link>
                     <h1 className="page-title">
-                        🔮 双色球
+                        🎲 随机生成
                     </h1>
                     <div style={{ width: '80px' }}></div>
                 </div>
@@ -73,7 +73,7 @@ export default function ShuangseqiuPage() {
                         }}>
                             <p style={{ fontSize: '1.125rem' }}>点击上方按钮生成号码</p>
                             <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                                红球: 6个号码 (1-33) | 蓝球: 1个号码 (1-16)
+                                前区: 5个号码 (1-35) | 后区: 2个号码 (1-12)
                             </p>
                         </div>
                     )}
@@ -81,9 +81,9 @@ export default function ShuangseqiuPage() {
                     {generatedNumbers.map((lottery) => (
                         <div key={lottery.id} className="lottery-card">
                             <div className="lottery-numbers">
-                                {/* Red balls */}
+                                {/* Front numbers */}
                                 {lottery.numbers.map((num, index) => (
-                                    <div key={`red-${index}`} className="number-ball red">
+                                    <div key={`front-${index}`} className="number-ball front">
                                         {num.toString().padStart(2, '0')}
                                     </div>
                                 ))}
@@ -96,9 +96,9 @@ export default function ShuangseqiuPage() {
                                     margin: '0 0.25rem',
                                 }}></div>
 
-                                {/* Blue ball */}
+                                {/* Back numbers */}
                                 {lottery.specialNumbers?.map((num, index) => (
-                                    <div key={`blue-${index}`} className="number-ball blue">
+                                    <div key={`back-${index}`} className="number-ball back">
                                         {num.toString().padStart(2, '0')}
                                     </div>
                                 ))}
