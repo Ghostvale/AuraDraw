@@ -17,19 +17,33 @@ const LOTTERY_CODE_MAP: Record<string, string> = {
     'qlc': 'qlc',      // 七乐彩
 };
 
-// API 返回数据结构
+// API 返回数据结构（新格式）
 interface HuiniaoApiResponse {
     code: number;
-    msg: string;
-    data: HuiniaoLotteryData[];
+    info: string;
+    data: {
+        last: HuiniaoLotteryItem;
+        data: {
+            list: HuiniaoLotteryItem[];
+            currentPage: string;
+            currentLimit: string;
+            totalPage: number;
+            totalCount: number;
+        };
+    };
 }
 
-interface HuiniaoLotteryData {
-    issue: string;      // 期号
-    date: string;       // 开奖日期 YYYY-MM-DD
-    number: string;     // 开奖号码，格式: "01,05,12,25,33+02,09"
-    prizePool?: string; // 奖池金额
-    totalSales?: string;// 销售额
+interface HuiniaoLotteryItem {
+    code: string;       // 期号
+    day: string;        // 开奖日期 YYYY-MM-DD
+    one: string;        // 第1个号码
+    two: string;        // 第2个号码
+    three: string;      // 第3个号码
+    four: string;       // 第4个号码
+    five: string;       // 第5个号码
+    six: string;        // 第6个号码（后区1 或 第6个号码）
+    seven: string;      // 第7个号码（后区2 或 空）
+    open_time: string;  // 开奖时间
 }
 
 // 标准化的开奖数据
@@ -41,53 +55,58 @@ export interface LotteryDrawData {
     extraNumbers: string | null;
     prizePool: number | null;
     totalSales: number | null;
-    rawData: HuiniaoLotteryData;
+    rawData: HuiniaoLotteryItem;
 }
 
 /**
- * 解析开奖号码字符串
- * 输入格式: "01,05,12,25,33+02,09" 或 "01,05,12,25,33"
- * 输出: { mainNumbers: "01,05,12,25,33", extraNumbers: "02,09" }
+ * 将 API 返回的单条数据转换为标准格式
+ * 大乐透: 前区5个(one-five) + 后区2个(six,seven)
+ * 双色球: 红球6个(one-six) + 蓝球1个(seven)
  */
-function parseNumbers(numberStr: string, lotteryCode: string): { mainNumbers: string; extraNumbers: string | null } {
-    // 某些彩种用 + 分隔主区和附加区
-    if (numberStr.includes('+')) {
-        const [main, extra] = numberStr.split('+');
-        return {
-            mainNumbers: main.trim(),
-            extraNumbers: extra?.trim() || null
-        };
-    }
+function transformLotteryItem(item: HuiniaoLotteryItem, lotteryCode: string): LotteryDrawData {
+    let mainNumbers: string;
+    let extraNumbers: string | null;
 
-    // 排列3/5、福彩3D、七星彩等没有附加区
-    if (['pl3', 'pl5', 'fc3d', 'qxc'].includes(lotteryCode)) {
-        return {
-            mainNumbers: numberStr.trim(),
-            extraNumbers: null
-        };
+    if (lotteryCode === 'dlt') {
+        // 大乐透: 前区5个 + 后区2个
+        mainNumbers = [item.one, item.two, item.three, item.four, item.five].join(',');
+        extraNumbers = [item.six, item.seven].join(',');
+    } else if (lotteryCode === 'ssq') {
+        // 双色球: 红球6个 + 蓝球1个
+        mainNumbers = [item.one, item.two, item.three, item.four, item.five, item.six].join(',');
+        extraNumbers = item.seven;
+    } else if (lotteryCode === 'qlc') {
+        // 七乐彩: 7个号码 + 特别号1个
+        mainNumbers = [item.one, item.two, item.three, item.four, item.five, item.six, item.seven].join(',');
+        extraNumbers = null; // 七乐彩特别号需要另外处理
+    } else if (lotteryCode === 'qxc') {
+        // 七星彩: 7个号码
+        mainNumbers = [item.one, item.two, item.three, item.four, item.five, item.six, item.seven].join(',');
+        extraNumbers = null;
+    } else if (lotteryCode === 'pl5') {
+        // 排列5: 5个号码
+        mainNumbers = [item.one, item.two, item.three, item.four, item.five].join(',');
+        extraNumbers = null;
+    } else if (lotteryCode === 'pl3' || lotteryCode === 'fc3d') {
+        // 排列3/福彩3D: 3个号码
+        mainNumbers = [item.one, item.two, item.three].join(',');
+        extraNumbers = null;
+    } else {
+        // 默认处理
+        mainNumbers = [item.one, item.two, item.three, item.four, item.five].join(',');
+        extraNumbers = item.six && item.seven ? [item.six, item.seven].join(',') : item.six || null;
     }
 
     return {
-        mainNumbers: numberStr.trim(),
-        extraNumbers: null
+        lotteryCode,
+        issue: item.code,
+        drawDate: item.day,
+        mainNumbers,
+        extraNumbers,
+        prizePool: null,
+        totalSales: null,
+        rawData: item,
     };
-}
-
-/**
- * 解析金额字符串为分
- * 输入: "1234567.89" 或 "1,234,567.89" 或 "123456789"
- */
-function parseMoney(moneyStr?: string): number | null {
-    if (!moneyStr) return null;
-    
-    // 移除逗号和其他非数字字符（保留小数点）
-    const cleaned = moneyStr.replace(/[^\d.]/g, '');
-    const value = parseFloat(cleaned);
-    
-    if (isNaN(value)) return null;
-    
-    // 转换为分
-    return Math.round(value * 100);
 }
 
 /**
@@ -100,7 +119,7 @@ export async function fetchLotteryHistory(
     lotteryCode: string,
     page: number = 1,
     limit: number = 20
-): Promise<{ success: boolean; data: LotteryDrawData[]; error?: string }> {
+): Promise<{ success: boolean; data: LotteryDrawData[]; error?: string; totalCount?: number }> {
     const apiCode = LOTTERY_CODE_MAP[lotteryCode];
     
     if (!apiCode) {
@@ -117,7 +136,7 @@ export async function fetchLotteryHistory(
                 'Accept': 'application/json',
             },
             // 设置超时
-            signal: AbortSignal.timeout(10000),
+            signal: AbortSignal.timeout(15000),
         });
 
         if (!response.ok) {
@@ -126,31 +145,25 @@ export async function fetchLotteryHistory(
 
         const result: HuiniaoApiResponse = await response.json();
         
-        if (result.code !== 200 || !result.data) {
+        // 新 API 返回 code: 1 表示成功
+        if (result.code !== 1 || !result.data?.data?.list) {
             return { 
                 success: false, 
                 data: [], 
-                error: result.msg || '获取数据失败' 
+                error: result.info || '获取数据失败' 
             };
         }
 
         // 转换数据格式
-        const data: LotteryDrawData[] = result.data.map(item => {
-            const { mainNumbers, extraNumbers } = parseNumbers(item.number, lotteryCode);
-            
-            return {
-                lotteryCode,
-                issue: item.issue,
-                drawDate: item.date,
-                mainNumbers,
-                extraNumbers,
-                prizePool: parseMoney(item.prizePool),
-                totalSales: parseMoney(item.totalSales),
-                rawData: item,
-            };
-        });
+        const data: LotteryDrawData[] = result.data.data.list.map(item => 
+            transformLotteryItem(item, lotteryCode)
+        );
 
-        return { success: true, data };
+        return { 
+            success: true, 
+            data,
+            totalCount: result.data.data.totalCount,
+        };
     } catch (error) {
         console.error(`Failed to fetch lottery history for ${lotteryCode}:`, error);
         return { 
@@ -218,7 +231,7 @@ export async function fetchAllHistory(
         page++;
         
         // 添加延迟避免请求过快
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 300));
     }
 
     return { success: true, data: allData, totalFetched: allData.length };
