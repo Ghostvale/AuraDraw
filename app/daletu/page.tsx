@@ -11,6 +11,15 @@ const features = [
         iconBg: 'rgba(99, 102, 241, 0.12)',
     },
     {
+        id: 'test',
+        href: '/daletu/test',
+        icon: '🎯',
+        title: '往期随机测试',
+        description: '用随机号码测试往期中奖情况',
+        gradient: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+        iconBg: 'rgba(16, 185, 129, 0.12)',
+    },
+    {
         id: 'history',
         href: '/daletu/history',
         icon: '📊',

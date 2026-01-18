@@ -7,7 +7,7 @@ import {
     getResultsCount,
     type LotteryResultInput 
 } from '@/lib/db';
-import { fetchLotteryHistory, type LotteryDrawData } from '@/lib/lottery-api';
+import { fetchLotteryHistory, fetchLatestDraw, type LotteryDrawData } from '@/lib/lottery-api';
 
 // 验证管理员 token
 function verifyAdminToken(request: NextRequest): boolean {
@@ -32,6 +32,7 @@ function transformToDbFormat(data: LotteryDrawData[]): LotteryResultInput[] {
         lottery_code: item.lotteryCode,
         issue: item.issue,
         draw_date: item.drawDate,
+        draw_date_time: item.drawDateTime,  // 完整日期时间
         main_numbers: item.mainNumbers,
         extra_numbers: item.extraNumbers || undefined,
         prize_pool: item.prizePool || undefined,
@@ -131,7 +132,9 @@ export async function POST(request: NextRequest) {
 
             // 更新同步状态
             const latestIssue = result.data[0]?.issue;
+            const latestDateTime = result.data[0]?.drawDateTime || result.data[0]?.drawDate;
             const oldestIssue = result.data[result.data.length - 1]?.issue;
+            const oldestDateTime = result.data[result.data.length - 1]?.drawDateTime || result.data[result.data.length - 1]?.drawDate;
             
             await updateSyncStatus(code, {
                 last_synced_issue: latestIssue,
@@ -146,7 +149,9 @@ export async function POST(request: NextRequest) {
                 fetched: result.data.length,
                 inserted: insertedCount,
                 latestIssue,
+                latestDateTime,
                 oldestIssue,
+                oldestDateTime,
                 hasMore: result.data.length >= limit,
             });
         }
@@ -159,6 +164,45 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 success: true,
                 message: '同步状态已重置',
+            });
+        }
+
+        if (action === 'fetchLatest') {
+            // 获取最新开奖数据（实时查询，不依赖分页）
+            console.log(`[Admin] Fetching latest for ${code}`);
+            
+            const result = await fetchLatestDraw(code);
+            
+            if (!result.success || !result.data) {
+                return NextResponse.json({
+                    success: false,
+                    error: result.error || '获取最新开奖失败',
+                    apiError: true,
+                });
+            }
+
+            const latestData = result.data;
+            
+            // 插入数据库
+            const dbData = transformToDbFormat([latestData]);
+            const insertedCount = await batchInsertLotteryResults(dbData);
+
+            // 更新同步状态
+            await updateSyncStatus(code, {
+                last_synced_issue: latestData.issue,
+                last_synced_date: latestData.drawDate ? new Date(latestData.drawDate) : undefined,
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: `获取最新开奖成功`,
+                fetched: 1,
+                inserted: insertedCount,
+                latestIssue: latestData.issue,
+                latestDateTime: latestData.drawDateTime || latestData.drawDate,
+                mainNumbers: latestData.mainNumbers,
+                extraNumbers: latestData.extraNumbers,
+                totalSales: latestData.totalSales,
             });
         }
 

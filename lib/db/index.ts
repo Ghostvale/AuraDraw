@@ -43,6 +43,7 @@ export interface LotteryResult {
     lottery_code: string;
     issue: string;
     draw_date: Date;
+    draw_date_time: string | null;  // 完整日期时间 YYYY-MM-DD HH:mm:ss
     main_numbers: string;
     extra_numbers: string | null;
     prize_pool: number | null;
@@ -55,6 +56,7 @@ export interface LotteryResultInput {
     lottery_code: string;
     issue: string;
     draw_date: string;
+    draw_date_time?: string;  // 完整日期时间 YYYY-MM-DD HH:mm:ss
     main_numbers: string;
     extra_numbers?: string;
     prize_pool?: number;
@@ -62,7 +64,7 @@ export interface LotteryResultInput {
     raw_data?: Record<string, unknown>;
 }
 
-// 批量插入开奖结果（忽略重复）
+// 批量插入开奖结果（忽略重复，或更新 draw_date_time）
 export async function batchInsertLotteryResults(results: LotteryResultInput[]): Promise<number> {
     if (results.length === 0) return 0;
 
@@ -72,19 +74,25 @@ export async function batchInsertLotteryResults(results: LotteryResultInput[]): 
         try {
             await sql`
                 INSERT INTO lottery_results (
-                    lottery_code, issue, draw_date, main_numbers, extra_numbers, 
+                    lottery_code, issue, draw_date, draw_date_time, main_numbers, extra_numbers, 
                     prize_pool, total_sales, raw_data
                 ) VALUES (
                     ${result.lottery_code},
                     ${result.issue},
                     ${result.draw_date},
+                    ${result.draw_date_time || null},
                     ${result.main_numbers},
                     ${result.extra_numbers || null},
                     ${result.prize_pool || null},
                     ${result.total_sales || null},
                     ${result.raw_data ? JSON.stringify(result.raw_data) : null}
                 )
-                ON CONFLICT (lottery_code, issue) DO NOTHING
+                ON CONFLICT (lottery_code, issue) DO UPDATE SET
+                    draw_date_time = COALESCE(EXCLUDED.draw_date_time, lottery_results.draw_date_time),
+                    prize_pool = COALESCE(EXCLUDED.prize_pool, lottery_results.prize_pool),
+                    total_sales = COALESCE(EXCLUDED.total_sales, lottery_results.total_sales),
+                    raw_data = COALESCE(EXCLUDED.raw_data, lottery_results.raw_data),
+                    updated_at = NOW()
             `;
             insertedCount++;
         } catch (error) {
@@ -249,6 +257,7 @@ export async function initializeDatabase(): Promise<void> {
             lottery_code VARCHAR(20) NOT NULL,
             issue VARCHAR(30) NOT NULL,
             draw_date DATE NOT NULL,
+            draw_date_time VARCHAR(30),
             main_numbers VARCHAR(100) NOT NULL,
             extra_numbers VARCHAR(50),
             prize_pool BIGINT,
@@ -259,6 +268,13 @@ export async function initializeDatabase(): Promise<void> {
             UNIQUE(lottery_code, issue)
         )
     `;
+    
+    // 为旧表添加 draw_date_time 列（如果不存在）
+    try {
+        await sql`ALTER TABLE lottery_results ADD COLUMN IF NOT EXISTS draw_date_time VARCHAR(30)`;
+    } catch {
+        // 忽略错误（列可能已存在）
+    }
 
     // 创建同步状态表
     await sql`

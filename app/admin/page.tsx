@@ -133,7 +133,14 @@ export default function AdminPage() {
                     addLog(`   获取: ${data.fetched} 条, 新增: ${data.inserted} 条`);
                 }
                 if (data.latestIssue) {
-                    addLog(`   期号范围: ${data.oldestIssue} ~ ${data.latestIssue}`);
+                    // 显示期号和开奖时间
+                    const latestInfo = data.latestDateTime 
+                        ? `${data.latestIssue} (${data.latestDateTime})`
+                        : data.latestIssue;
+                    const oldestInfo = data.oldestDateTime 
+                        ? `${data.oldestIssue} (${data.oldestDateTime})`
+                        : data.oldestIssue;
+                    addLog(`   期号范围: ${oldestInfo} ~ ${latestInfo}`);
                 }
                 if (data.hasMore === false) {
                     addLog(`   ℹ️ 已到达数据末尾`);
@@ -210,6 +217,48 @@ export default function AdminPage() {
     const handleReset = () => {
         executeAction('reset', { code: syncConfig.code });
         setSyncConfig(prev => ({ ...prev, page: 1 }));
+    };
+
+    // 获取最新开奖（实时查询）
+    const handleFetchLatest = async () => {
+        setIsOperating(true);
+        addLog(`🔍 正在查询 ${syncConfig.code === 'dlt' ? '大乐透' : '双色球'} 最新开奖...`);
+
+        try {
+            const res = await fetch('/api/admin/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ action: 'fetchLatest', code: syncConfig.code }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                addLog(`✅ ${data.message}`);
+                addLog(`   期号: ${data.latestIssue} (${data.latestDateTime})`);
+                // 格式化号码显示
+                const mainNums = data.mainNumbers?.split(',').map((n: string) => n.padStart(2, '0')).join(' ') || '-';
+                const extraNums = data.extraNumbers?.split(',').map((n: string) => n.padStart(2, '0')).join(' ') || '-';
+                addLog(`   开奖号码: [${mainNums}] + [${extraNums}]`);
+                if (data.totalSales) {
+                    addLog(`   销售额: ¥${(data.totalSales / 100).toLocaleString()}`);
+                }
+                addLog(`   ${data.inserted > 0 ? '🆕 新数据已入库' : 'ℹ️ 数据已存在'}`);
+                // 刷新状态
+                fetchStatus();
+            } else {
+                addLog(`❌ 失败: ${data.error}`);
+                if (data.apiError) {
+                    addLog(`   这可能是 API 接口问题，请稍后重试`);
+                }
+            }
+        } catch (err) {
+            addLog(`❌ 网络错误: ${err}`);
+        } finally {
+            setIsOperating(false);
+        }
     };
 
     // 登出
@@ -330,6 +379,22 @@ export default function AdminPage() {
                                 <span className="info-label">累计同步次数</span>
                                 <span className="info-value">{syncStatus.sync_count} 次</span>
                             </div>
+                            <div className="info-item">
+                                <span className="info-label">最后同步时间</span>
+                                <span className="info-value">
+                                    {syncStatus.last_sync_at 
+                                        ? new Date(syncStatus.last_sync_at).toLocaleString('zh-CN', {
+                                            year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            second: '2-digit',
+                                            hour12: false
+                                          }).replace(/\//g, '-')
+                                        : '-'}
+                                </span>
+                            </div>
                         </div>
                     ) : (
                         <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>
@@ -407,6 +472,14 @@ export default function AdminPage() {
                             🗄️ 初始化数据库
                         </button>
                         <button
+                            onClick={handleFetchLatest}
+                            disabled={isOperating}
+                            className="btn btn-primary"
+                            style={{ flex: '1 1 auto', minWidth: '120px', background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                        >
+                            {isOperating ? '查询中...' : '⚡ 查询最新开奖'}
+                        </button>
+                        <button
                             onClick={handleSync}
                             disabled={isOperating}
                             className="btn btn-primary"
@@ -479,7 +552,8 @@ export default function AdminPage() {
                     <p><strong>💡 使用说明：</strong></p>
                     <ul style={{ marginTop: '0.5rem', paddingLeft: '1.25rem' }}>
                         <li>首次使用请先点击「初始化数据库」</li>
-                        <li>点击「同步」获取单页数据，点击「批量同步」一次获取10页</li>
+                        <li>点击「⚡ 查询最新开奖」实时获取最新一期开奖结果</li>
+                        <li>点击「同步」获取单页数据，点击「批量同步」一次获取10页历史</li>
                         <li>如果 API 报错，可以换个页码或稍后重试</li>
                         <li>历史同步完成后，每天定时任务会自动同步增量数据</li>
                     </ul>

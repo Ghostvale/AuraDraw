@@ -42,14 +42,26 @@ export async function GET(request: NextRequest) {
         }
 
         // 格式化返回数据
-        const formattedResults = results.map(r => ({
-            issue: r.issue,
-            drawDate: r.draw_date,
-            mainNumbers: r.main_numbers.split(',').map(n => n.trim()),
-            extraNumbers: r.extra_numbers?.split(',').map(n => n.trim()) || [],
-            prizePool: r.prize_pool,
-            totalSales: r.total_sales,
-        }));
+        const formattedResults = results.map(r => {
+            // 格式化日期时间为 YYYY-MM-DD HH:mm:ss 格式
+            let formattedDateTime = r.draw_date_time;
+            if (!formattedDateTime && r.draw_date) {
+                // 如果没有完整时间，使用日期 + 默认时间
+                const dateStr = r.draw_date instanceof Date 
+                    ? r.draw_date.toISOString().split('T')[0]
+                    : String(r.draw_date).split('T')[0];
+                formattedDateTime = `${dateStr} 21:30:00`;
+            }
+            
+            return {
+                issue: r.issue,
+                drawDate: formattedDateTime || r.draw_date,  // 使用完整日期时间
+                mainNumbers: r.main_numbers.split(',').map(n => n.trim()),
+                extraNumbers: r.extra_numbers?.split(',').map(n => n.trim()) || [],
+                prizePool: r.prize_pool,
+                totalSales: r.total_sales,
+            };
+        });
 
         return NextResponse.json({
             success: true,
