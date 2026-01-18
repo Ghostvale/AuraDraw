@@ -22,11 +22,20 @@ const features = [
     {
         id: 'history',
         href: '/daletu/history',
-        icon: '📊',
+        icon: '📋',
         title: '开奖查询',
         description: '查询往期大乐透开奖号码',
         gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
         iconBg: 'rgba(245, 158, 11, 0.12)',
+    },
+    {
+        id: 'simulate',
+        href: '/daletu/simulate',
+        icon: '📊',
+        title: '模拟中奖率',
+        description: '100次模拟统计中奖概率',
+        gradient: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+        iconBg: 'rgba(236, 72, 153, 0.12)',
     },
 ];
 

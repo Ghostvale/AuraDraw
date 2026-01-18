@@ -1,73 +1,36 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
-import { fetchRandomIntegers, isError, MAX_RANDOM_VALUE } from '@/lib/random-api';
 
-interface RandomResult {
-    id: string;
-    timestamp: string;
-    value: number;
-    range: number;
-}
-
-const MIN_RANGE = 5;
+const features = [
+    {
+        id: 'number',
+        href: '/random/number',
+        icon: '🔢',
+        title: '随机数生成',
+        description: '生成指定范围内的真随机数',
+        gradient: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)',
+        iconBg: 'rgba(99, 102, 241, 0.12)',
+    },
+    {
+        id: 'coin',
+        href: '/random/coin',
+        icon: '🪙',
+        title: '抛硬币',
+        description: '模拟抛硬币，多种硬币样式可选',
+        gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+        iconBg: 'rgba(245, 158, 11, 0.12)',
+    },
+    {
+        id: 'dice',
+        href: '/random/dice',
+        icon: '🎲',
+        title: '掷骰子',
+        description: '掷骰子游戏，支持1-6个骰子',
+        gradient: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+        iconBg: 'rgba(16, 185, 129, 0.12)',
+    },
+];
 
 export default function RandomPage() {
-    const [results, setResults] = useState<RandomResult[]>([]);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [rangeInput, setRangeInput] = useState('100');
-
-    const handleGenerate = async () => {
-        const range = parseInt(rangeInput, 10) || 100;
-
-        if (range < MIN_RANGE) {
-            setError(`范围最小值为 ${MIN_RANGE}`);
-            return;
-        }
-
-        if (range > MAX_RANDOM_VALUE) {
-            setError(`范围最大值为 ${MAX_RANDOM_VALUE.toLocaleString()}`);
-            return;
-        }
-
-        setIsGenerating(true);
-        setError(null);
-
-        const result = await fetchRandomIntegers(1, 0, range);
-
-        if (isError(result)) {
-            setError(result.message);
-        } else {
-            const randomResult: RandomResult = {
-                id: `random-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                timestamp: new Date().toLocaleString('zh-CN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false,
-                }),
-                value: result[0],
-                range: range,
-            };
-            setResults((prev) => [randomResult, ...prev]);
-        }
-
-        setIsGenerating(false);
-    };
-
-    const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        // Allow empty or numeric input
-        if (value === '' || /^\d+$/.test(value)) {
-            setRangeInput(value);
-        }
-    };
-
     return (
         <div className="container">
             <div style={{ paddingTop: '1rem' }}>
@@ -77,113 +40,60 @@ export default function RandomPage() {
                         ← 返回
                     </Link>
                     <h1 className="page-title">
-                        🎲 随机数
+                        🎲 随机工具
                     </h1>
                     <div style={{ width: '80px' }}></div>
                 </div>
 
-                {/* Range Input */}
-                <div style={{
-                    marginBottom: '1.5rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                }}>
-                    <label style={{
-                        fontSize: '0.9375rem',
-                        color: 'var(--text-secondary)',
-                        fontWeight: '500',
-                    }}>
-                        设置随机数上限
-                    </label>
-                    <input
-                        type="text"
-                        inputMode="numeric"
-                        value={rangeInput}
-                        onChange={handleRangeChange}
-                        className="input-field"
-                        style={{
-                            width: '160px',
-                            textAlign: 'center',
-                        }}
-                        placeholder="100"
-                    />
-                    <p style={{
-                        fontSize: '0.8125rem',
-                        color: 'var(--text-secondary)',
-                        opacity: 0.8,
-                    }}>
-                        生成 0 ~ N 的随机整数（N: {MIN_RANGE} ~ {MAX_RANDOM_VALUE.toLocaleString()}）
-                    </p>
-                </div>
-
-                {/* Generate Button */}
-                <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                    <button
-                        onClick={handleGenerate}
-                        disabled={isGenerating}
-                        className="btn btn-primary"
-                        style={{
-                            fontSize: 'clamp(1rem, 4vw, 1.125rem)',
-                            padding: 'clamp(1rem, 4vw, 1.25rem) clamp(2rem, 8vw, 3rem)',
-                            opacity: isGenerating ? 0.6 : 1,
-                            cursor: isGenerating ? 'not-allowed' : 'pointer',
-                        }}
-                    >
-                        {isGenerating ? '生成中...' : '🎲 生成随机数'}
-                    </button>
-                </div>
-
-                {/* Error Message */}
-                {error && (
-                    <div className="error-message">
-                        <strong>⚠️ 错误:</strong> {error}
-                    </div>
-                )}
-
-                {/* Generated Results */}
-                <div>
-                    {results.length === 0 && !error && (
-                        <div style={{
-                            textAlign: 'center',
-                            padding: '3rem 1rem',
-                            color: 'var(--text-secondary)',
-                        }}>
-                            <p style={{ fontSize: '1.125rem' }}>点击上方按钮生成随机数</p>
-                            <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                                基于大气噪声的真随机数
-                            </p>
-                        </div>
-                    )}
-
-                    {results.map((result) => (
-                        <div key={result.id} className="random-card">
-                            <div className="random-result">
-                                {result.value.toLocaleString()}
+                {/* 功能卡片 */}
+                <div className="feature-grid">
+                    {features.map((feature, index) => (
+                        <Link
+                            key={feature.id}
+                            href={feature.href}
+                            className="feature-card"
+                            style={{
+                                '--card-gradient': feature.gradient,
+                                '--card-icon-bg': feature.iconBg,
+                                animationDelay: `${index * 0.1}s`,
+                            } as React.CSSProperties}
+                        >
+                            <div className="feature-card-inner">
+                                <div className="feature-icon">
+                                    <span>{feature.icon}</span>
+                                </div>
+                                <div className="feature-content">
+                                    <h3 className="feature-title">{feature.title}</h3>
+                                    <p className="feature-description">{feature.description}</p>
+                                </div>
+                                <div className="feature-arrow">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M5 12h14M12 5l7 7-7 7" />
+                                    </svg>
+                                </div>
                             </div>
-                            <div className="random-info">
-                                <span>范围: 0 ~ {result.range.toLocaleString()}</span>
-                                <span>{result.timestamp}</span>
-                            </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
 
-                {/* Info */}
-                {results.length > 0 && (
-                    <div style={{
-                        marginTop: '2rem',
-                        padding: '1rem',
-                        background: 'var(--bg-secondary)',
-                        borderRadius: '8px',
-                        textAlign: 'center',
-                        fontSize: '0.875rem',
-                        color: 'var(--text-secondary)',
-                    }}>
-                        已生成 {results.length} 个随机数 · 刷新或返回将清空记录
+                {/* 说明 */}
+                <div className="info-card">
+                    <h4>🌐 关于大气随机数</h4>
+                    <div className="info-content">
+                        <div className="info-item">
+                            <span className="info-label">数据来源</span>
+                            <span className="info-value">Random.org 大气噪声</span>
+                        </div>
+                        <div className="info-item">
+                            <span className="info-label">随机性</span>
+                            <span className="info-value">真随机，非伪随机算法</span>
+                        </div>
+                        <div className="info-item">
+                            <span className="info-label">应用场景</span>
+                            <span className="info-value">抽奖、决策、游戏等</span>
+                        </div>
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

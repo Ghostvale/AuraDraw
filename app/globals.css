@@ -1106,3 +1106,484 @@ a {
   font-size: 0.875rem;
   opacity: 0.8;
 }
+
+/* ==================== COIN FLIP STYLES (NEW) ==================== */
+
+/* 硬币容器 */
+.coin-3d-wrapper {
+  width: 140px;
+  height: 140px;
+  perspective: 1000px;
+}
+
+.coin-3d-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+}
+
+.coin-3d-wrapper.flipping .coin-3d-inner {
+  animation: coinFlipNew 1.5s ease-out forwards;
+}
+
+@keyframes coinFlipNew {
+  0% {
+    transform: translateY(0) rotateX(0);
+  }
+  15% {
+    transform: translateY(-80px) rotateX(360deg);
+  }
+  30% {
+    transform: translateY(-150px) rotateX(720deg);
+  }
+  50% {
+    transform: translateY(-180px) rotateX(1080deg);
+  }
+  70% {
+    transform: translateY(-120px) rotateX(1440deg);
+  }
+  85% {
+    transform: translateY(-50px) rotateX(1620deg);
+  }
+  100% {
+    transform: translateY(0) rotateX(calc(1800deg + var(--final-rotation, 0deg)));
+  }
+}
+
+/* 硬币面 - 新样式 */
+.coin-face-new {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  border: 5px solid;
+  box-shadow: 
+    inset 0 0 30px rgba(255, 255, 255, 0.4),
+    inset 0 0 10px rgba(255, 255, 255, 0.3),
+    inset 0 -5px 20px rgba(0, 0, 0, 0.25),
+    inset 0 5px 10px rgba(255, 255, 255, 0.2),
+    0 8px 25px rgba(0, 0, 0, 0.4),
+    0 2px 5px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.coin-front-new {
+  transform: rotateX(0deg);
+}
+
+.coin-back-new {
+  transform: rotateX(180deg);
+}
+
+/* 硬币外圈纹理 */
+.coin-rim {
+  position: absolute;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  border-radius: 50%;
+  border: 3px solid;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* 硬币内圈 */
+.coin-inner-circle {
+  position: absolute;
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  background: inherit;
+  filter: brightness(1.05);
+  box-shadow: 
+    inset 0 2px 8px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.15),
+    0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 硬币文字 */
+.coin-text {
+  position: relative;
+  z-index: 2;
+  font-size: 1.75rem;
+  font-weight: 800;
+  text-shadow: 
+    1px 1px 1px rgba(255, 255, 255, 0.5),
+    -1px -1px 1px rgba(0, 0, 0, 0.3);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* 硬币边缘厚度效果 */
+.coin-edge {
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) rotateX(90deg) translateZ(0);
+  border-radius: 3px;
+}
+
+/* 方孔古币样式 */
+.coin-face-new.square-hole::before {
+  content: '';
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  background: var(--bg-secondary);
+  border: 2px solid rgba(0, 0, 0, 0.4);
+  z-index: 3;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.coin-face-new.square-hole .coin-inner-circle {
+  display: none;
+}
+
+.coin-face-new.square-hole .coin-text {
+  position: absolute;
+  font-size: 1rem;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: -0.1em;
+}
+
+.coin-front-new.square-hole .coin-text {
+  top: 12%;
+  right: 50%;
+  transform: translateX(50%);
+}
+
+.coin-back-new.square-hole .coin-text {
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ==================== COIN FLIP STYLES (LEGACY) ==================== */
+
+.coin-3d {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+}
+
+.coin-3d.flipping {
+  animation: coinFlip 1.5s ease-out forwards;
+}
+
+.coin-3d.heads {
+  transform: rotateX(0deg);
+}
+
+.coin-3d.tails {
+  transform: rotateX(180deg);
+}
+
+@keyframes coinFlip {
+  0% {
+    transform: translateY(0) rotateX(0);
+  }
+  25% {
+    transform: translateY(-150px) rotateX(450deg);
+  }
+  50% {
+    transform: translateY(-200px) rotateX(900deg);
+  }
+  75% {
+    transform: translateY(-100px) rotateX(1350deg);
+  }
+  100% {
+    transform: translateY(0) rotateX(var(--final-rotation, 0deg));
+  }
+}
+
+.coin-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  backface-visibility: hidden;
+  border: 4px solid var(--border-color);
+  box-shadow: 
+    inset 0 2px 10px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 10px rgba(0, 0, 0, 0.2),
+    0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.coin-front {
+  background: var(--front-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.coin-back {
+  background: var(--back-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+  transform: rotateX(180deg);
+}
+
+/* 方孔古币样式 (legacy) */
+.coin-face.square-hole::before {
+  content: '';
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+}
+
+.coin-face.square-hole span {
+  position: absolute;
+}
+
+.coin-front.square-hole span {
+  top: 15%;
+  font-size: 1rem;
+}
+
+.coin-back.square-hole span {
+  bottom: 15%;
+  font-size: 1rem;
+}
+
+/* ==================== DICE STYLES ==================== */
+
+.dice-3d {
+  width: 60px;
+  height: 60px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+  transform: rotateX(var(--final-x, 0deg)) rotateY(var(--final-y, 0deg));
+}
+
+.dice-3d.rolling {
+  animation: diceRoll 1.5s ease-out forwards;
+}
+
+@keyframes diceRoll {
+  0% {
+    transform: translateY(0) rotateX(0) rotateY(0) rotateZ(0);
+  }
+  20% {
+    transform: translateY(-100px) rotateX(180deg) rotateY(90deg) rotateZ(45deg);
+  }
+  40% {
+    transform: translateY(-150px) rotateX(360deg) rotateY(180deg) rotateZ(90deg);
+  }
+  60% {
+    transform: translateY(-100px) rotateX(540deg) rotateY(270deg) rotateZ(135deg);
+  }
+  80% {
+    transform: translateY(-50px) rotateX(660deg) rotateY(330deg) rotateZ(160deg);
+  }
+  100% {
+    transform: translateY(0) rotateX(var(--final-x, 0deg)) rotateY(var(--final-y, 0deg)) rotateZ(0deg);
+  }
+}
+
+.dice-face {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+  border: 2px solid #d0d0d0;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.8);
+}
+
+[data-theme='dark'] .dice-face {
+  background: linear-gradient(135deg, #2a2a3a 0%, #1a1a2a 100%);
+  border-color: #404050;
+}
+
+.dice-dot {
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+  border-radius: 50%;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .dice-dot {
+  background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
+}
+
+/* 骰子六个面的位置 */
+.face-front {
+  transform: translateZ(30px);
+}
+
+.face-back {
+  transform: rotateY(180deg) translateZ(30px);
+}
+
+.face-right {
+  transform: rotateY(90deg) translateZ(30px);
+}
+
+.face-left {
+  transform: rotateY(-90deg) translateZ(30px);
+}
+
+.face-top {
+  transform: rotateX(90deg) translateZ(30px);
+}
+
+.face-bottom {
+  transform: rotateX(-90deg) translateZ(30px);
+}
+
+/* ==================== PROGRESS BAR ==================== */
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-gradient);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* ==================== STATS TABLE ==================== */
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.stats-table th {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stats-table td {
+  color: var(--text-primary);
+}
+
+.stats-table tr:last-child td {
+  border-bottom: none;
+}
+
+.stats-table tr:hover td {
+  background: var(--bg-secondary);
+}
+
+/* ==================== RESPONSIVE ADJUSTMENTS ==================== */
+
+@media (max-width: 640px) {
+  /* 新硬币样式响应式 */
+  .coin-3d-wrapper {
+    width: 120px;
+    height: 120px;
+  }
+
+  .coin-text {
+    font-size: 1.5rem;
+  }
+
+  .coin-face-new {
+    border-width: 4px;
+  }
+
+  .coin-inner-circle {
+    width: 65%;
+    height: 65%;
+  }
+
+  .coin-face-new.square-hole::before {
+    width: 24px;
+    height: 24px;
+  }
+
+  .coin-face-new.square-hole .coin-text {
+    font-size: 0.875rem;
+  }
+
+  /* 旧硬币样式响应式 */
+  .coin-3d {
+    width: 100px;
+    height: 100px;
+  }
+
+  .coin-face {
+    font-size: 1.5rem;
+  }
+
+  /* 骰子响应式 */
+  .dice-3d {
+    width: 50px;
+    height: 50px;
+  }
+
+  .dice-face {
+    width: 50px;
+    height: 50px;
+  }
+
+  .face-front {
+    transform: translateZ(25px);
+  }
+
+  .face-back {
+    transform: rotateY(180deg) translateZ(25px);
+  }
+
+  .face-right {
+    transform: rotateY(90deg) translateZ(25px);
+  }
+
+  .face-left {
+    transform: rotateY(-90deg) translateZ(25px);
+  }
+
+  .face-top {
+    transform: rotateX(90deg) translateZ(25px);
+  }
+
+  .face-bottom {
+    transform: rotateX(-90deg) translateZ(25px);
+  }
+
+  .dice-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .stats-table th,
+  .stats-table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.75rem;
+  }
+}
